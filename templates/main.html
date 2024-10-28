@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/marked@5.0.2/marked.min.js"></script>
+    <title>GPT TRPG 게임</title>
+</head>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #160705;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;  
+        overflow: auto;
+        max-height: 100vh;
+    }
+    /*h1 {/*게임 진행*/
+        /*font-size: 1.8rem;
+        /*color: #e74c3c;
+        /*text-shadow: -1px 0 #6c2004, 0 1px #6c2004, 1px 0 #6c2004, 0 -1px #6c2004;
+        /* 게임 진행 폰트의 테두리 색상*/
+       /* margin-top: 20px;
+      /*  text-align: center;
+    /*}*/
+    .background {
+        background-image: url('/static/sml_back.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: table-cell ;
+        vertical-align: middle;
+        width: 1300px;
+        height: 1140px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: -1;
+    }
+    .WoodFrame {
+        background-image: url('/static/Woods_Frame.png'); /* 첫 번째 이미지 */
+        background-size: contain;
+        background-repeat: no-repeat;
+        position: relative; 
+        width: 780px; 
+        height: 1150px; 
+        left: 1200px; 
+        bottom: 260px; 
+        z-index: 2;
+        cursor: pointer;
+    }
+        #gpt-form{
+        position: absolute;
+        left: 250px;
+        }
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        margin-top: 10px;
+        top:800px
+    }
+
+
+    label {
+        position: relative;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    textarea {
+        position: relative;
+        width: 800px;
+        height: 100px;
+        max-height: 100px;
+        padding: 10px;
+        border: 2px solid #e74c3c;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        background-color: #210b07;
+        color: #ecf0f1;
+        outline: none;
+        box-sizing: border-box;
+        resize: none;
+        overflow: auto;
+        z-index: 1;
+    }
+
+    textarea:focus {
+        border-color: #e74c3c;
+        box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+    }
+
+    button {
+        position: relative;
+        padding: 12px 30px;
+        font-size: 1.2rem;
+        color: #fff;
+        background-color: #e74c3c;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #c0392b;
+    }
+
+    #response {
+        position: relative;
+        height: 442px;
+        left: 1365px;
+        width: 520px;
+        bottom: 764px;
+        max-height: 420px;
+        background-color: #210b07;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: #ecf0f1;
+        margin-top: 10px;
+        margin-bottom: -1600px;
+        overflow: auto;
+    }
+            /* 위로, 아래로 버튼 스타일 */
+            .scroll-buttons {
+                position: absolute;
+                flex-direction: column;
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+        margin-bottom: 50px;
+    }
+
+    .scroll-buttons button {
+        margin: 40px;
+        padding: 10px 17px;
+        background-color: #e74c3c;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        left: 1240px;
+        top: 500px;
+        font-size: 1rem;
+        z-index: 3;
+    }
+
+    .scroll-buttons button:hover {
+        background-color: #c0392b;
+    }
+</style>
+<body>
+    <div class="background"></div>
+    <img src="static/title.png" alt="게임 로고"> 
+
+        <form id="gpt-form">
+            <label for="prompt">행동</label><br>
+            <textarea id="prompt" name="prompt" rows="4" cols="50" oninput="autoResize(this)" required></textarea><br><br>
+            <button type="submit">전송</button>
+        </form>
+        <div class="WoodFrame"></div>
+        <div id="response" class="response-container"></div>
+
+    <!-- 스크롤 버튼 -->
+    <div class="scroll-buttons">
+        <button id="scroll-up">위로</button>
+        <button id="scroll-down">아래로</button>
+    </div>
+</body>
+
+<script>
+
+    //scroll-bar 위 아래 기능.
+    document.getElementById('scroll-up').addEventListener('click', () => {
+        document.getElementById('response').scrollTop -= 50; // 위로 50px 스크롤
+    });
+    
+    document.getElementById('scroll-down').addEventListener('click', () => {
+        document.getElementById('response').scrollTop += 50; // 아래로 50px 스크롤
+    });
+    
+
+    // marked 설정 조정
+    marked.setOptions({
+        breaks: false,  // 줄 바꿈을 무시하여 단일 줄로 처리
+    });
+
+        document.getElementById('gpt-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const prompt = document.getElementById('prompt').value;
+        
+            try {
+                const response = await fetch('/gpt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt }),
+                });
+        
+                const data = await response.json();
+                // Markdown을 HTML로 변환하여 표시
+                //document.getElementById('response').innerHTML = marked.parse(data.response || data.error);
+
+                 // 응답 텍스트에서 불필요한 줄 바꿈을 하나의 줄로 줄임
+                let cleanedResponse = data.response ? data.response.replace(/\n/g, '\n') : data.error;
+
+                // Markdown을 HTML로 변환하여 표시
+                 document.getElementById('response').innerHTML = marked.parse(cleanedResponse);
+            } catch (error) {
+                document.getElementById('response').innerHTML = `Error: ${error.message}`;
+            }
+        });
+
+        console.log(marked);  // undefined 또는 함수 확인
+               
+        // 엔터키가 눌렸을 때 폼이 제출되도록 처리
+        document.getElementById('prompt').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // 기본 엔터 동작 방지 (새 줄 생성 방지)
+                document.getElementById('gpt-form').requestSubmit(); // 폼 제출
+                document.getElementById('prompt').value = '';
+            }
+        });
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto'; // 높이 초기화
+            textarea.style.height = textarea.scrollHeight + 'px'; // 내용에 맞게 높이 조정
+        }
+
+
+    </script>
+</html>

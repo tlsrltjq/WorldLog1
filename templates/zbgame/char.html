@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG 캐릭터 생성기</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <h1>TRPG 캐릭터 생성기</h1>
+
+    <h2>캐릭터 생성</h2>
+    <form id="characterForm">
+        <label for="name">이름:</label>
+        <input type="text" id="name" required><br>
+        <label for="class">직업:</label>
+        <select id="class" required>
+            <option value="직업선택">직업을 선택하세요</option>
+            <option value="정찰병">정찰병</option>
+            <option value="러너">러너</option>
+            <option value="수집꾼">수집꾼</option>
+            <option value="영웅">영웅</option>
+            <option value="사수">사수</option>
+            <option value="수리공">수리공</option>
+            <option value="의사">의사</option>
+            <option value="건달">건달</option>
+        </select><br>
+        <label for="brain">두뇌:</label>
+        <input type="number" id="brain" value="0" required readonly><br>
+        <label for="body">신체:</label>
+        <input type="number" id="body" value="0" required readonly><br>
+        <label for="will">투지:</label>
+        <input type="number" id="will" value="0" required readonly><br>
+        <label for="guts">배짱:</label>
+        <input type="number" id="guts" value="0" required readonly><br>
+        <label for="fear">공포:</label>
+        <input type="number" id="fear" value="0" max="3" required readonly><br>
+        <label for="infection">감염:</label>
+        <input type="number" id="infection" value="0" max="3" required readonly><br>
+        <label for="load">하중:</label>
+        <input type="number" id="load" value="8" required readonly><br>
+        <label for="wound">부상:</label>
+        <input type="number" id="wound" value="9" required readonly><br>
+        <button type="submit">캐릭터 생성</button>
+    </form>
+
+    <h2>캐릭터 목록</h2>
+    <button id="loadCharacters">캐릭터 불러오기</button>
+    <ul id="characterList"></ul>
+
+    <h2>캐릭터 정보</h2>
+    <a href="/api/characters"><button>이동</button></a>
+
+    <h2>스토리</h2>
+    <a href="main"><button>이동</button></a>
+
+    <script>
+        $(document).ready(function () {
+            // 랜덤으로 사용할 능력치 배열
+            const attributesArray = [
+                [0, -1, 1],
+                [1, -1, 0],
+                [-1, 0, 1],
+                [-1, 1, 0],
+                [1, 0, -1],
+                [0, 1, -1]
+            ];
+
+            // 직업 선택 시 능력치 업데이트
+            $('#class').on('change', function () {
+                const characterClass = $(this).val();
+                let brain = 0;
+                let body = 0;
+                let will = 0;
+                let guts = 0;
+                let fear = 0;
+                let infection = 0;
+
+                let randomValues;
+
+                if (characterClass === '정찰병') {
+                    brain += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    body += randomValues[0];
+                    will += randomValues[1];
+                    guts += randomValues[2];
+                } else if (characterClass === '러너') {
+                    body += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    brain += randomValues[0];
+                    will += randomValues[1];
+                    guts += randomValues[2];
+                } else if (characterClass === '수집꾼') {
+                    const randomValues = generateRandomValuesForCollector();
+                    brain += randomValues[0];
+                    body += randomValues[1];
+                    will += randomValues[2];
+                    guts += randomValues[3];
+                } else if (characterClass === '영웅') {
+                    guts += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    brain += randomValues[0];
+                    body += randomValues[1];
+                    will += randomValues[2];
+                } else if (characterClass === '사수') {
+                    will += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    brain += randomValues[0];
+                    body += randomValues[1];
+                    guts += randomValues[2];
+                } else if (characterClass === '수리공') {
+                    body += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    brain += randomValues[0];
+                    will += randomValues[1];
+                    guts += randomValues[2];
+                } else if (characterClass === '의사') {
+                    brain += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    body += randomValues[0];
+                    will += randomValues[1];
+                    guts += randomValues[2];
+                } else if (characterClass === '건달') {
+                    will += 2;
+                    randomValues = getRandomAttributes(attributesArray);
+                    brain += randomValues[0];
+                    body += randomValues[1];
+                    guts += randomValues[2];
+                }
+
+                // 하중 및 부상 계산
+                const load = 8 + body;
+                const wound = 9 + will;
+
+                $('#brain').val(brain);
+                $('#body').val(body);
+                $('#will').val(will);
+                $('#guts').val(guts);
+                $('#fear').val(fear);
+                $('#infection').val(infection);
+                $('#load').val(load);
+                $('#wound').val(wound);
+            });
+
+            $('#characterForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const characterData = {
+                    name: $('#name').val(),
+                    class: $('#class').val(),
+                    brain: parseInt($('#brain').val()),
+                    body: parseInt($('#body').val()),
+                    will: parseInt($('#will').val()),
+                    guts: parseInt($('#guts').val()),
+                    fear: parseInt($('#fear').val()),
+                    infection: parseInt($('#infection').val()),
+                    load: parseInt($('#load').val()),
+                    wound: parseInt($('#wound').val())
+                };
+
+                $.ajax({
+                    url: '/api/characters',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(characterData),
+                    success: function (response) {
+                        alert('캐릭터가 생성되었습니다.');
+                        $('#characterForm')[0].reset();  // 폼 리셋
+                        $('#brain').val(0);
+                        $('#body').val(0);
+                        $('#will').val(0);
+                        $('#guts').val(0);
+                        $('#fear').val(0);
+                        $('#infection').val(0);
+                        $('#load').val(8);  // 하중 초기화
+                        $('#wound').val(9);  // 부상 초기화
+                    },
+                    error: function () {
+                        alert('캐릭터 생성에 실패했습니다.');
+                    }
+                });
+            });
+
+            $('#loadCharacters').on('click', function () {
+                $.ajax({
+                    url: '/api/characters',
+                    method: 'GET',
+                    success: function (response) {
+                        const characters = response.split("\n").map(line => {
+                            const parts = line.split(", ");
+                            return { id: parts[0].split(": ")[1], name: parts[1].split(": ")[1] };
+                        });
+                        $('#characterList').empty();  // 이전 목록 비우기
+                        characters.forEach(character => {
+                            $('#characterList').append(`<li>ID: ${character.id}, 이름: ${character.name}</li>`);
+                        });
+                    },
+                    error: function () {
+                        alert('캐릭터 목록 불러오기에 실패했습니다.');
+                    }
+                });
+            });
+
+            function getRandomAttributes(arrays) {
+                const randomIndex = Math.floor(Math.random() * arrays.length);
+                return arrays[randomIndex];
+            }
+
+            function generateRandomValuesForCollector() {
+                const values = [0, 1, 1, 1]; // 기본 배열
+                for (let i = values.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [values[i], values[j]] = [values[j], values[i]];
+                }
+                return values; // 랜덤하게 섞인 배열 반환
+            }
+        });
+    </script>
+</body>
+
+</html>

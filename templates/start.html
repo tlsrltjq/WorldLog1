@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT TRPG 게임 시작</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('/static/sml_back.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #ecf0f1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .p {
+            font-size: 1.5rem;
+            color: rgba(236, 240, 241, 1); /* 글씨색을 불투명하게 설정 (0.8 = 80% 불투명도) */
+            margin-bottom: 30px;
+            padding:20px;
+            position: relative;
+            z-index: 1;
+            transition: padding 0.5 ease;
+        }
+
+.p::after {
+    content: ""; /* 내용 추가 */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(204, 109, 20, 0.7); /* 반투명 배경색 */
+    border-radius: 15px;
+    z-index: -1; /* 배경이 글씨 뒤에 위치하도록 설정 */
+}
+
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.5s ease;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+            transition: scale(1.15);
+        }
+/* 버튼, 텍스트 크기 반응형 추가*/
+        @media (max-width: 500px) {
+            button {
+                padding: 10px 30px;
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 500px) {
+            .p {
+                padding: 10px 30px;
+                font-size: 1rem;
+            }
+        }
+
+        .center-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60%;
+        }
+
+        .center-image img {
+            width: 60%;
+            height: auto;
+            transition:0.4s ease
+        }
+
+        @media (max-width:300px)and(max-height:800px) {
+            .center-image img{
+                width: 80%;
+            }
+        }
+        @media (max-height:550px){
+            .center-image{
+                width: 40%;
+            }
+        }
+        @media (max-width:1200px) {
+            .center-image img{
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="center-image">
+        <img src="static/WorldLog.png" alt="게임 로고">
+    </div>
+    <p class="p">당신의 모험을 시작하세요!</p>
+    <button onclick="startGame()">게임 시작</button>
+
+    <script>
+        function startGame() {
+            window.location.href = 'main'; // 게임 진행 화면으로 이동
+        }
+    </script>
+</body>
+</html>
+
